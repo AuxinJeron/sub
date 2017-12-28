@@ -1,0 +1,94 @@
+#!/bin/bash
+
+function build_spx {
+    echo "begin to build projects in $LIZYANG_SPOT_WORKSPACE_PATH"/spx
+
+    if [ "${package}" == "all" -o "${package}" == "EC2SpotExchangeServiceModel" ]
+    then
+        cd ${LIZYANG_SPOT_WORKSPACE_PATH}/spx/src/EC2SpotExchangeServiceModel
+        echo "clean EC2SpotExchangeServiceModel..."
+        brazil-build clean
+        echo "build EC2SpotExchangeServiceModel..."
+        brazil-build
+    fi
+
+    if [ "${package}" == "all" -o "${package}" == "EC2SpotExchangeServiceJavaClient" ]
+    then
+        cd ${LIZYANG_SPOT_WORKSPACE_PATH}/spx/src/EC2SpotExchangeServiceJavaClient
+        echo "clean EC2SpotExchangeServiceJavaClient..."
+        brazil-build clean
+        echo "build EC2SpotExchangeServiceJavaClient..."
+        brazil-build
+    fi
+
+    if [ "${package}" == "all" -o "${package}" == "EC2SpotDataStorageServiceModel" ]
+    then
+        cd ${LIZYANG_SPOT_WORKSPACE_PATH}/spx/src/EC2SpotDataStorageServiceModel
+        echo "clean EC2SpotDataStorageServiceModel..."
+        brazil-build clean
+        echo "build EC2SpotDataStorageServiceModel..."
+        brazil-build
+    fi
+
+    if [ "${package}" == "all" -o "${package}" == "EC2SpotDataStorageServiceJavaClient" ]
+    then
+        cd ${LIZYANG_SPOT_WORKSPACE_PATH}/spx/src/EC2SpotDataStorageServiceJavaClient
+        echo "clean EC2SpotDataStorageServiceJavaClient..."
+        brazil-build clean
+        echo "build EC2SpotDataStorageServiceJavaClient..."
+        brazil-build
+    fi
+
+    if [ "${package}" == "all" -o "${package}" == "EC2SpotExchangeService" ]
+    then
+        cd ${LIZYANG_SPOT_WORKSPACE_PATH}/spx/src/EC2SpotExchangeService
+        echo "clean EC2SpotExchangeService..."
+        brazil-build clean
+        echo "build EC2SpotExchangeService..."
+        brazil-build
+    fi
+}
+
+# check operating system
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+
+optget="optget"
+if [ $machine == "Mac" ]
+then
+	optget="/usr/local/bin/getopt"
+elif [ $machine == "Linux" ]
+then
+	optget="getopt"
+fi
+
+# read the options
+TEMP=`"${optget}" -o w:p: --long workspace:,package: -n 'lizyang_pull.txt' -- "$@"`
+eval set -- "$TEMP"
+
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+package="all"
+# extract options and their arguments into variables.
+while true ; do
+    case "$1" in
+        -w|--workspace)
+        	workspace=$2 ; shift 2 ;;
+        -p|--package)
+			package=$2 ; shift 2 ;;
+        --) shift ; break ;;
+        *) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+case "${workspace}" in
+	spx)		build_spx;;
+	capmon)		build_capmon;;
+	spws)		build_spws;;
+esac

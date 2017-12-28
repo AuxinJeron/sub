@@ -1,0 +1,153 @@
+#!/bin/bash
+
+function pull_spx {
+	echo "begin to pull projects in $LIZYANG_SPOT_WORKSPACE_PATH"/spx
+
+	echo "git pull EC2SpotExchangeService"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/spx/src/EC2SpotExchangeService
+	git pull --rebase
+
+	echo "git pull EC2SpotDataStorageServiceJavaClient"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/spx/src/EC2SpotDataStorageServiceJavaClient
+	git pull --rebase
+
+	echo "git pull EC2SpotDataStorageServiceRubyClient"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/spx/src/EC2SpotDataStorageServiceRubyClient
+	git pull --rebase
+
+	echo "git pull EC2SpotExchangeServiceJavaClient"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/spx/src/EC2SpotExchangeServiceJavaClient
+	git pull --rebase
+
+	echo "git pull EC2SpotDataStorageServiceModel"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/spx/src/EC2SpotDataStorageServiceModel
+	git pull --rebase
+
+	echo "git pull EC2SpotExchangeServiceModel"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/spx/src/EC2SpotExchangeServiceModel
+	git pull --rebase
+
+	echo "git pull EC2SpotExchangeServiceClientConfig"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/spx/src/EC2SpotExchangeServiceClientConfig
+	git pull --rebase
+
+	echo "git pull EC2SpotExchangeServiceIntegrationTests"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/spx/src/EC2SpotExchangeServiceIntegrationTests
+	git pull --rebase	
+
+	git status
+}
+
+function pull_spws {
+	echo "begin to pull projects in $LIZYANG_SPOT_WORKSPACE_PATH"/spws
+
+	echo "git pull SpotOnDesktopWebsiteContent"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/spws/src/SpotOnDesktopWebsiteContent
+	git pull --rebase
+	git status
+}
+
+function pull_capmon {
+	echo "begin to pull projects in $LIZYANG_SPOT_WORKSPACE_PATH"/capmon
+
+	echo "git pull EC2SpotCapacityMonitorIntegrationTests"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/capmon/src/EC2SpotCapacityMonitorIntegrationTests
+	git pull --rebase
+
+	echo "git pull EC2SpotCapacityMonitorServiceClientConfig"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/capmon/src/EC2SpotCapacityMonitorServiceClientConfig
+	git pull --rebase
+
+	echo "git pull EC2SpotCapacityMonitorServiceModel"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/capmon/src/EC2SpotCapacityMonitorServiceModel
+	git pull --rebase
+
+	echo "git pull EC2SpotCapacityMonitorService"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/capmon/src/EC2SpotCapacityMonitorService
+	git pull --rebase
+
+	echo "git pull EC2SpotCapacityMonitorServiceJavaClient"
+	cd $LIZYANG_SPOT_WORKSPACE_PATH/capmon/src/EC2SpotCapacityMonitorServiceJavaClient
+	git pull
+	git status
+}
+
+function pull_bms {
+	echo "begin to pull projects in $LIZYANG_SPOT_WORKSPACE_PATH"/bms
+
+	echo "git pull EC2-Remnants-BidManagerService"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/bms/src/EC2-Remnants-BidManagerService
+	git pull --rebase
+
+	echo "git pull EC2SpotMarketServiceModel"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/bms/src/EC2SpotMarketServiceModel
+	git pull --rebase
+
+	git status
+}
+
+function pull_sponc {
+	echo "begin to pull projects in $LIZYANG_SPOT_WORKSPACE_PATH"/sponc
+
+	echo "git pull EC2-Spot-OncallTools"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/sponc/src/EC2-Spot-OncallTools
+	git pull --rebase
+
+	git status
+}
+
+function pull_execs {
+	echo "begin to pull projects in $LIZYANG_SPOT_WORKSPACE_PATH"/execs
+
+	echo "git pull EC2SpotWorkerService"
+	cd ${LIZYANG_SPOT_WORKSPACE_PATH}/execs/src/EC2SpotWorkerService
+	git pull --rebase
+
+	git status	
+}
+
+# check operating system
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+
+optget="optget"
+if [ $machine == "Mac" ]
+then
+	optget="/usr/local/bin/getopt"
+elif [ $machine == "Linux" ]
+then
+	optget="getopt"
+fi
+
+# read the options
+TEMP=`"${optget}" -o w:p: --long workspace:,package: -n 'lizyang_pull.txt' -- "$@"`
+eval set -- "$TEMP"
+
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+# extract options and their arguments into variables.
+while true ; do
+    case "$1" in
+        -w|--workspace)
+        	workspace=$2 ; shift 2 ;;
+        -p|--package)
+			package=$2 ; shift 2 ;;
+        --) shift ; break ;;
+        *) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+case "${workspace}" in
+	spx)		pull_spx;;
+	capmon)		pull_capmon;;
+	spws)		pull_spws;;
+	bms)		pull_bms;;
+	sponc)		pull_sponc;;
+	execs)		pull_execs;;
+esac

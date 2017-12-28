@@ -1,0 +1,3 @@
+#!/bin/zsh
+
+/apollo/env/Spot-SpotOnCallTools-$USER/scripts/submit_bid.rb -r localhost -a 123456789012 -p 0.2 -c 1 -i m1.small -o generic

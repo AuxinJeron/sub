@@ -1,0 +1,71 @@
+#!/apollo/bin/env -e Spot-SpotOnCallTools-lizyang ruby
+
+require 'xmlrpc/client'
+require 'socket'
+require 'time'
+require 'ostruct'
+require 'rubygems'
+require 'pp'
+require 'trollop'
+require 'optparse'
+require 'time'
+require 'bms_client'
+require 'dss_client'
+#
+# This script call notifyTerminate in bid manager. This updates the termination time of the instance in bidInstances store. 
+# This script should not be used for running spot instances. If the instance is termianted in ec2 and spot is not aware of this termiantion, 
+# then this script can be used to update instance & bid states in DDS. 
+# Execution of this script requires a CM. 
+#
+
+request_id = `whoami`.strip + '-requestId-' + rand(10000).to_s()
+$opts = Trollop::options do
+   banner "Script for updating DDS with instance termination information through bid manager service. Only use only if the instance is terminated"
+   opt :url,  "url", :type => String, :required => false
+   opt :region, "Specific region, iad, sfo, etc..", :type => String, :required => false, :default => "zeta"
+   opt :lastSuccessTime, "Default lastt success time is 'now' ", :type => String, :required => false, :default => Time.now.utc.to_s
+   opt :requestId, "Requestid to be passed through services.", :type => String, :required => false, :default => request_id
+   opt :dryMode, "In dry mode?", :required => false, :default => false
+end
+
+def setup
+  if ($opts[:url] )
+    $client = XMLRPC::Client.new2($opts[:url])
+  elsif ($opts[:region] )
+    $client = dss_client(region=$opts[:region])
+  else
+    throw RuntimeException.new("--url or --region required")
+  end
+
+  $last_success_time = Time.parse($opts[:lastSuccessTime]).utc
+
+end
+
+def notify_bidfeed_success  
+
+  puts "dss_client:\t #{$client.inspect}"
+  puts "last spot metering time:\t #{$last_success_time}"
+  #timeStr = Time.now.strftime("%s")
+  #timeStr = ($last_success_time.to_f * 1000).to_i.to_s
+  puts "last spot metering time:\t #{$last_success_time.to_i}"
+
+  notify_req = { :requestId => $opts[:requestId], :sourceHost => '127.0.0.1',
+                    :callerId => `whoami`.chomp, :spotMeteringLastSuccessTime => $last_success_time.to_i}
+  puts "notify_req:\t #{notify_req.inspect}"
+  if (!$opts[:dryMode])
+    resp = $client.call("EC2SpotExchangeService.NotifyBidFeedSuccess", notify_req)
+    puts "notify_resp: #{resp.inspect}"
+  else
+    puts "In DRY MODE\n Last BidFeed Success would be notified."
+  end
+
+rescue Exception => e
+    puts e.message
+end
+
+def main
+  setup()
+  notify_bidfeed_success()
+end
+
+main()

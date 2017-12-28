@@ -1,14 +1,14 @@
-_sub() {
+_lizyang() {
   COMPREPLY=()
   local word="${COMP_WORDS[COMP_CWORD]}"
 
   if [ "$COMP_CWORD" -eq 1 ]; then
-    COMPREPLY=( $(compgen -W "$(sub commands)" -- "$word") )
+    COMPREPLY=( $(compgen -W "$(lizyang commands)" -- "$word") )
   else
     local command="${COMP_WORDS[1]}"
-    local completions="$(sub completions "$command")"
+    local completions="$(lizyang completions "$command")"
     COMPREPLY=( $(compgen -W "$completions" -- "$word") )
   fi
 }
 
-complete -F _sub sub
+complete -F _lizyang lizyang

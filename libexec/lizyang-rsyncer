@@ -1,0 +1,10 @@
+#!/bin/bash
+#trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
+function upload {
+	rsync -e "ssh -S none " --exclude '*sitedir' --exclude '*runpy*' --exclude '*.idea*' --exclude '*.iml' -a \
+	    /Users/lizyang/Tools/myscripts/ \
+	    dev-dsk-lizyang-2a-3d0f02d3.us-west-2.amazon.com:/home/lizyang/tools/myscripts
+}
+
+upload

@@ -1,0 +1,14 @@
+#!/bin/bash
+#trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
+function backup {
+	rsync -e "ssh -S none " --exclude '*sitedir' --exclude '*runpy*' --exclude '*.idea*' --exclude '*.iml' -a -v \
+	    ${LIZYANG_WORKSPACE_PATH}/spot/ \
+	    ${LIZYANG_WORKSPACE_PATH}/spot_backup
+}
+
+backup
+
+
+
+

@@ -1,0 +1,95 @@
+#!/bin/bash
+
+function checkout {
+	if [ ${host} == "laptop" ]
+	then
+		echo "begin checkout laptop spot workspace"
+		cd /Users/lizyang/Workspace/spot/src/EC2SpotMaster
+		
+		brazil ws --sync
+		./runpy bin/init-workspace.py --laptop --workspace-root /Users/lizyang/Workspace/spot --remote-workspace /home/lizyang/spot -o overrides/lizyang-laptop-overrides.json
+	fi
+
+	if [ ${host} == "dev" ]
+	then
+		echo "begin checkout dev spot workspace"
+		cd /workplace/lizyang/spotmaster/src/EC2SpotMaster
+		brazil ws --sync
+		./runpy bin/init-workspace.py -w /home/$USER/spot --step=checkout_project --skip-workspaces fleet_bidding --skip-workspaces fleet_minion
+	fi
+}
+
+function deploy {
+	if [ ${host} == "laptop" ]
+	then
+		echo "begin checkout laptop spot workspace"
+		cd /Users/lizyang/Workspace/spot/src/EC2SpotMaster
+		
+		brazil ws --sync
+		./runpy bin/init-workspace.py --laptop --workspace-root /Users/lizyang/Workspace/spot --remote-workspace /home/lizyang/spot -o overrides/lizyang-laptop-overrides.json
+	fi
+
+	if [ ${host} == "dev" ]
+	then
+		echo "begin deploy dev spot workspace"
+		cd /workplace/lizyang/spotmaster/src/EC2SpotMaster
+		brazil ws --sync
+		./runpy bin/init-workspace.py -w /home/$USER/spot --skip-step=checkout_project --skip-workspaces fleet_bidding --skip-workspaces fleet_minion
+	fi
+}
+
+function initWorkspace {
+	if [ ${host} == "dev" ]
+	then	
+		echo "begin checkout dev spot workspace"
+		cd /workplace/lizyang/spotmaster/src/EC2SpotMaster
+		brazil ws --sync
+		./runpy bin/init-workspace.py -w /home/$USER/spot --skip-workspaces fleet_bidding --skip-workspaces fleet_minion
+	fi
+}
+
+# check operating system
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+
+optget="optget"
+if [ $machine == "Mac" ]
+then
+	optget="/usr/local/bin/getopt"
+	host="laptop"
+elif [ $machine == "Linux" ]
+then
+	optget="getopt"
+	host="dev"
+fi
+
+# read the options
+TEMP=`"${optget}" -o a: --long action: -- "$@"`
+eval set -- "$TEMP"
+
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+# extract options and their arguments into variables.
+while true ; do
+    case "$1" in
+        -a|--action)
+        	action=$2 ; shift 2 ;;
+        --) shift ; break ;;
+        *) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+case ${action} in
+	checkout) 
+		checkout ;;
+	init)
+		initWorkspace ;;
+	deploy)
+		deploy ;;
+esac

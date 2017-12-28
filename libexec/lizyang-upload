@@ -1,0 +1,88 @@
+#!/bin/bash
+#trap "trap - SIGTERM && kill -- -$$" SIGINT SIGTERM EXIT
+
+function upload_spx_integration_test {
+	echo "Upload spx_integration_test..."
+	rsync -e "ssh -S none " --exclude '*sitedir' --exclude '*runpy*' --exclude 'build*' --exclude '*.idea*' --exclude '*.iml' -a -v \
+	    /Users/lizyang/Workspace/spot/spx/src/EC2SpotExchangeServiceIntegrationTests/ \
+	    dev-dsk-lizyang-2a-3d0f02d3.us-west-2.amazon.com:/home/lizyang/spot/spx/src/EC2SpotExchangeServiceIntegrationTests
+}
+
+function upload_spx_client_config {
+	echo "Upload spx_client_config..."
+	rsync -e "ssh -S none " --exclude '*sitedir' --exclude '*runpy*' --exclude 'build*' --exclude '*.idea*' --exclude '*.iml' -a -v \
+	    /Users/lizyang/Workspace/spot/spx/src/EC2SpotExchangeServiceClientConfig/ \
+	    dev-dsk-lizyang-2a-3d0f02d3.us-west-2.amazon.com:/home/lizyang/spot/spx/src/EC2SpotExchangeServiceClientConfig
+}
+
+function upload_SpotNotificationService {
+	echo "Upload SpotNotificationService..."
+	rsync -e "ssh -S none " --exclude '*sitedir' --exclude '*runpy*' --exclude 'build*' --exclude '*.idea*' --exclude '*.iml' -a -v \
+	    /Users/lizyang/Workspace/SpotNotificationService/ \
+	    dev-dsk-lizyang-2a-3d0f02d3.us-west-2.amazon.com:/home/lizyang/SpotNotificationService
+}
+
+function upload_EC2SpotGatewayService {
+	echo "Upload EC2SpotGatewayService..."
+	rsync -e "ssh -S none " --exclude '*sitedir' --exclude '*runpy*' --exclude 'build*' --exclude '*.idea*' --exclude '*.iml' -a -v \
+	    /Users/lizyang/Workspace/EC2SpotGatewayService/ \
+	    dev-dsk-lizyang-2a-3d0f02d3.us-west-2.amazon.com:/home/lizyang/EC2SpotGatewayService
+}
+
+function upload_EC2SpotGreyBoxTests {
+	echo "Upload EC2SpotGreyBoxTests..."
+	rsync -e "ssh -S none " --exclude '*sitedir' --exclude '*runpy*' --exclude 'build*' --exclude '*.idea*' --exclude '*.iml' --exclude 'env/*' -a -v \
+	    /Users/lizyang/Workspace/EC2SpotGreyBoxTests/ \
+	    dev-dsk-lizyang-2a-3d0f02d3.us-west-2.amazon.com:/home/lizyang/EC2SpotGreyBoxTests
+}
+
+function upload_SpotPipelineTemplates {
+	echo "Upload Spot-Pipeline-Templates..."
+	rsync -e "ssh -S none " --exclude '*sitedir' --exclude '*runpy*' --exclude 'build*' --exclude '*.idea*' --exclude '*.iml' --exclude 'env/*' -a -v \
+	    /Users/lizyang/Workspace/Spot-Pipeline-Templates/ \
+	    dev-dsk-lizyang-2a-3d0f02d3.us-west-2.amazon.com:/home/lizyang/Spot-Pipeline-Templates
+}
+
+# check operating system
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${unameOut}"
+esac
+
+optget="optget"
+if [ $machine == "Mac" ]
+then
+	optget="/usr/local/bin/getopt"
+elif [ $machine == "Linux" ]
+then
+	optget="getopt"
+fi
+
+# read the options
+TEMP=`"${optget}" -o w: --long workspace: -- "$@"`
+eval set -- "$TEMP"
+
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+
+# extract options and their arguments into variables.
+while true ; do
+    case "$1" in
+        -w|--workspace)
+        	workspace=$2 ; shift 2 ;;
+        --) shift ; break ;;
+        *) echo "Internal error!" ; exit 1 ;;
+    esac
+done
+
+case "${workspace}" in
+	spx_integration_test)		upload_spx_integration_test;;
+	spx_client_config)			upload_spx_client_config;;
+	SpotNotificationService) 	upload_SpotNotificationService;;
+	EC2SpotGatewayService)		upload_EC2SpotGatewayService;;
+	EC2SpotGreyBoxTests)		upload_EC2SpotGreyBoxTests;;
+    Spot-Pipeline-Templates)	upload_SpotPipelineTemplates;;
+esac
